@@ -263,6 +263,12 @@
 
   /* ---------- Export dropdown ---------- */
   .dropdown-menu.hidden { display: none; }
+  .seg { display: inline-flex; background: #fff; border-radius: 12px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+  .seg button {
+    border: 0; background: none; padding: 8px 12px; border-radius: 9px; font: inherit; font-size: 14px;
+    font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap;
+  }
+  .seg button.on { background: linear-gradient(145deg,#ff7a93,#d62f4f); color: #fff; box-shadow: 0 4px 10px rgba(214,47,79,.25); }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 1100px) {
@@ -296,6 +302,34 @@
     .card { box-shadow: none; }
     .table-wrap { overflow: visible; }
     tr.detail { display: table-row !important; }
+  }
+
+  /* ----- สลิปสรุปรายคน ----- */
+  .slip-sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
+  .slip-sum > div { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .slip-sum span { font-size: 12px; color: #6b7280; }
+  .slip-sum b { font-size: 15px; }
+  .slip-net { margin-top: 12px; background: #d92d20; color: #fff; border-radius: 12px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-weight: 700;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slip-net b { font-size: 20px; }
+  .slip-foot { display: flex; justify-content: flex-end; padding-top: 12px; }
+
+  .recent-toggle { width: 100%; border: 0; background: none; cursor: pointer; font: inherit; color: inherit;
+    text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .recent-chev { font-size: 12px; color: #6b7280; }
+
+  .seg-cell { min-width: 180px; }
+  .seg-row { display: flex; justify-content: space-between; gap: 14px; white-space: nowrap; font-size: 13px; }
+  .seg-row b { font-weight: 600; }
+
+  @media print {
+    body.printing-slip * { visibility: hidden !important; }
+    body.printing-slip #detailModal, body.printing-slip #detailModal * { visibility: visible !important; }
+    body.printing-slip > *:not(#detailModal) { display: none !important; }
+    body.printing-slip #detailModal { display: block !important; position: absolute !important; inset: auto !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
+    body.printing-slip .modal-box { position: static !important; margin: 0 !important; transform: none !important; box-shadow: none !important; border: none !important; max-width: 100% !important; width: 100% !important; max-height: none !important; overflow: visible !important; }
+    body.printing-slip .no-print { display: none !important; }
   }
 </style>
 </head>
@@ -368,6 +402,12 @@
             <div class="sub">สรุปข้อมูลการลงเวลา ประจำเดือน</div>
           </div>
           <div class="toolbar no-print">
+            <div class="seg" id="periodSeg">
+              <button type="button" data-p="day">รายวัน</button>
+              <button type="button" data-p="week">รายสัปดาห์</button>
+              <button type="button" data-p="month" class="on">รายเดือน</button>
+            </div>
+            <input id="dayPick" type="date" class="pill-input hidden">
             <input id="month" type="month" class="pill-input">
             <button id="loadBtn" class="btn outline"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>รีเฟรช</button>
             <div class="dropdown">
@@ -379,6 +419,7 @@
             </div>
           </div>
         </div>
+        <div id="recentBox"></div>
         <div id="payrollBox"></div>
       </section>
 
@@ -530,10 +571,12 @@
         <div class="modal-title" id="detailTitle"></div>
         <div class="modal-sub" id="detailSub"></div>
       </div>
-      <button class="modal-x" id="detailClose" aria-label="ปิด">×</button>
+      <button class="modal-x no-print" id="detailClose" aria-label="ปิด">×</button>
     </div>
     <div class="mini-stats" id="detailStats"></div>
     <div class="modal-table" id="detailBody"></div>
+    <div id="slipNet"></div>
+    <div class="slip-foot no-print"><button class="btn" id="slipBtn" type="button">พิมพ์สลิป</button></div>
   </div>
 </div>
 
@@ -553,6 +596,8 @@ const $ = id => document.getElementById(id);
 let session = null;      // { name, pw } เก็บในหน่วยความจำของหน้าเท่านั้น
 let payrollData = [];
 let payrollMonth = '';
+let payrollLabel = '';
+let period = 'month';    // day | week | month
 
 /* ---------- ช่วยเหลือ ---------- */
 function esc(s) {
@@ -561,6 +606,12 @@ function esc(s) {
 function showMsg(el, text, ok) {
   el.textContent = text;
   el.className = 'msg ' + (ok ? 'ok' : 'bad');
+}
+function fmtHours(h) {
+  const m = Math.round((Number(h) || 0) * 60);
+  const hh = Math.floor(m / 60), mm = m % 60;
+  if (hh === 0) return `${mm} นาที`;
+  return mm ? `${hh} ชม. ${mm} นาที` : `${hh} ชม.`;
 }
 function fmt(n) {
   return Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -688,7 +739,7 @@ $('logoutBtn').addEventListener('click', () => {
   payrollData = [];
   $('loginName').value = '';
   $('loginPw').value = '';
-  $('payrollBox').innerHTML = '';
+  $('payrollBox').innerHTML = ''; $('recentBox').innerHTML = '';
   $('app').classList.add('hidden');
   $('loginView').classList.remove('hidden');
 });
@@ -704,7 +755,7 @@ function endSession() {
 function forceLogout(text) {
   endSession();
   payrollData = [];
-  $('payrollBox').innerHTML = '';
+  $('payrollBox').innerHTML = ''; $('recentBox').innerHTML = '';
   $('app').classList.add('hidden');
   $('loginView').classList.remove('hidden');
   showMsg($('loginMsg'), text, false);
@@ -735,17 +786,92 @@ async function refreshLists() {
 /* ---------- รายงานสรุป ---------- */
 $('loadBtn').addEventListener('click', loadSummary);
 $('month').addEventListener('change', loadSummary);
+$('dayPick').addEventListener('change', loadSummary);
+document.querySelectorAll('#periodSeg button').forEach(b => b.addEventListener('click', () => setPeriod(b.dataset.p)));
+
+function setPeriod(p) {
+  period = p;
+  document.querySelectorAll('#periodSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  $('month').classList.toggle('hidden', p !== 'month');
+  $('dayPick').classList.toggle('hidden', p === 'month');
+  loadSummary();
+}
+
+// คำนวณช่วงวันที่ตามโหมดที่เลือก (สัปดาห์เริ่มวันจันทร์ถึงอาทิตย์)
+function periodRange() {
+  if (period === 'month') {
+    const m = $('month').value;
+    if (!m) return null;
+    return { from: m + '-01', to: m + '-31', label: 'เดือน ' + thaiMonth(m) };
+  }
+  if (!$('dayPick').value) $('dayPick').value = todayISO();
+  const d = $('dayPick').value;
+  if (period === 'day') return { from: d, to: d, label: 'วันที่ ' + thaiDate(d) };
+  const [y, m, dd] = d.split('-').map(Number);
+  const dow = (new Date(Date.UTC(y, m - 1, dd)).getUTCDay() + 6) % 7; // 0 = วันจันทร์
+  const mon = new Date(Date.UTC(y, m - 1, dd - dow));
+  const sun = new Date(Date.UTC(y, m - 1, dd - dow + 6));
+  const iso = x => x.toISOString().slice(0, 10);
+  return {
+    from: iso(mon), to: iso(sun),
+    label: `สัปดาห์ ${thaiDate(iso(mon))} – ${thaiDate(iso(sun))}`
+  };
+}
+
+/* ---------- ประวัติการลงเวลา 24 ชม. ล่าสุด ---------- */
+let recentOpen = false;
+function toggleRecent() {
+  recentOpen = !recentOpen;
+  const body = document.querySelector('.recent-body');
+  const chev = document.querySelector('.recent-chev');
+  if (body) body.classList.toggle('hidden', !recentOpen);
+  if (chev) chev.textContent = recentOpen ? '▲' : '▼';
+}
+
+async function loadRecent() {
+  const box = $('recentBox');
+  if (!session) return;
+  try {
+    const res = await adminPost({ action: 'recent' }, null);
+    if (!res.ok) {
+      if (res.expired || res.error === 'หมดเวลาการใช้งาน') return;
+      box.innerHTML = `<div class="empty">${esc(res.error)}</div>`;
+      return;
+    }
+    const list = res.events || [];
+    box.innerHTML = `
+      <div class="card">
+        <button type="button" class="card-head recent-toggle" onclick="toggleRecent()" aria-expanded="${recentOpen}">
+          <span>ประวัติการลงเวลาล่าสุด (24 ชม.) · ${list.length} รายการ</span>
+          <span class="recent-chev">${recentOpen ? '▲' : '▼'}</span>
+        </button>
+        <div class="recent-body ${recentOpen ? '' : 'hidden'}">
+        ${list.length ? `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>วันที่</th><th>เวลา</th><th>พนักงาน</th><th>เหตุการณ์</th></tr></thead>
+            <tbody>${list.map(ev => `<tr><td>${thaiDate(ev.date)}</td><td>${esc(ev.time)}</td><td>${esc(ev.name)}</td><td>${esc(ev.ev)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>` : '<div class="empty">ยังไม่มีการลงเวลาใน 24 ชั่วโมงที่ผ่านมา</div>'}
+        </div>
+      </div>`;
+  } catch (e) {
+    box.innerHTML = '';
+  }
+}
 
 async function loadSummary() {
   const box = $('payrollBox');
-  const month = $('month').value;
-  if (!month || !session) return;
-  payrollMonth = month;
+  const range = periodRange();
+  if (!range || !session) return;
+  payrollMonth = range.from + '_' + range.to;
+  payrollLabel = range.label;
+  loadRecent();
   box.innerHTML = `
     <div class="loader"><div class="loader-label">LOADING</div>
       <div class="loader-track"><div class="loader-bar"></div></div></div>`;
   try {
-    const res = await adminPost({ action: 'summary', month }, null);
+    const res = await adminPost({ action: 'summary', from: range.from, to: range.to }, null);
     if (!res.ok) {
       if (res.error === 'หมดเวลาการใช้งาน' || res.expired) return; // กลับไปหน้าล็อกอินแล้ว
       box.innerHTML = `<div class="empty">${esc(res.error)}</div>`;
@@ -761,7 +887,7 @@ async function loadSummary() {
 function renderPayroll() {
   const box = $('payrollBox');
   if (!payrollData.length) {
-    box.innerHTML = `<div class="empty">ไม่มีข้อมูลของเดือน ${thaiMonth(payrollMonth)}</div>`;
+    box.innerHTML = `<div class="empty">ไม่มีข้อมูลของเดือน ${payrollLabel}</div>`;
     return;
   }
 
@@ -780,7 +906,7 @@ function renderPayroll() {
           </div>
         </div>
       </td>
-      <td class="num-b">${fmt(e.totalHours)}<span class="unit">ชม.</span></td>
+      <td class="num-b">${fmtHours(e.totalHours)}</td>
       <td class="num-g">${fmt(e.totalPay)}</td>
       <td class="num-g">${fmt(e.totalSpecial)}</td>
       <td class="num-r">${fmt(e.totalDeduction)}</td>
@@ -795,7 +921,7 @@ function renderPayroll() {
               ${e.days.map(d => `
                 <tr>
                   <td>${thaiDate(d.date)}</td>
-                  <td>${fmt(d.hours)}</td>
+                  <td>${fmtHours(d.hours)}</td>
                   <td class="num-g">${fmt(d.pay)}</td>
                   <td class="num-g">${d.special ? '+' + fmt(d.special) : '-'}</td>
                   <td class="num-r">${d.deduction ? '-' + fmt(d.deduction) : '-'}</td>
@@ -821,7 +947,7 @@ function renderPayroll() {
       </div>
       <div class="stat-card">
         <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-        <div><div class="lbl">ชั่วโมงรวมทั้งหมด</div><div class="val">${fmt(totalHours)} ชม.</div></div>
+        <div><div class="lbl">ชั่วโมงรวมทั้งหมด</div><div class="val">${fmtHours(totalHours)}</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1"/></svg></div>
@@ -834,7 +960,7 @@ function renderPayroll() {
     </div>
 
     <div class="card">
-      <div class="card-head"><span class="bar-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>สรุปตามพนักงาน · ${thaiMonth(payrollMonth)}</div>
+      <div class="card-head"><span class="bar-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>สรุปตามพนักงาน · ${payrollLabel}</div>
       <div class="table-wrap">
         <table class="payroll">
           <thead>
@@ -851,7 +977,7 @@ function renderPayroll() {
           <tfoot>
             <tr>
               <td>รวม ${payrollData.length} คน</td>
-              <td>${fmt(totalHours)}<span class="unit">ชม.</span></td>
+              <td>${fmtHours(totalHours)}</td>
               <td>${fmt(totalPay)}</td>
               <td>${fmt(totalSpecial)}</td>
               <td>${fmt(totalDeduction)}</td>
@@ -875,10 +1001,10 @@ function openDetail(i) {
   $('detailAvatar').textContent = initials(e.name);
   $('detailAvatar').style.background = colorOf(e.name);
   $('detailTitle').textContent = e.name;
-  $('detailSub').textContent = `ค่าแรง ${fmt(e.rate)} บาท/ชม. · ${thaiMonth(payrollMonth)}`;
+  $('detailSub').textContent = `ค่าแรง ${fmt(e.rate)} บาท/ชม. · ${payrollLabel}`;
 
   $('detailStats').innerHTML = [
-    ['ชั่วโมงรวม', `${fmt(e.totalHours)} ชม.`],
+    ['ชั่วโมงรวม', `${fmtHours(e.totalHours)}`],
     ['ค่าจ้างรวม', `${fmt(e.totalPay)} บาท`],
     ['พิเศษ', `${fmt(e.totalSpecial)} บาท`],
     ['หักเงิน', `${fmt(e.totalDeduction)} บาท`],
@@ -888,7 +1014,8 @@ function openDetail(i) {
   const rows = e.days.map(d => `
     <tr>
       <td>${thaiDate(d.date)}</td>
-      <td>${fmt(d.hours)}</td>
+      <td class="seg-cell">${(d.segs || []).map(s => `<div class="seg-row"><span>${esc(s.inT)} – ${esc(s.outT)}</span><b>${fmtHours(s.hours)}</b></div>`).join('') || '-'}${d.breakMin ? `<div class="emp-sub">พัก ${Math.round(d.breakMin)} นาที</div>` : ''}</td>
+      <td>${fmtHours(d.hours)}</td>
       <td class="num-g">${fmt(d.pay)}</td>
       <td class="num-g">${d.special ? '+' + fmt(d.special) : '-'}</td>
       <td class="num-r">${d.deduction ? '-' + fmt(d.deduction) : '-'}</td>
@@ -897,16 +1024,34 @@ function openDetail(i) {
 
   $('detailBody').innerHTML = `
     <table>
-      <thead><tr><th>วันที่</th><th>ชั่วโมง</th><th>ค่าจ้าง</th><th>พิเศษ</th><th>หักเงิน</th><th>รวม</th></tr></thead>
+      <thead><tr><th>วันที่</th><th>เวลาเข้า-ออก</th><th>ชั่วโมง</th><th>ค่าจ้าง</th><th>พิเศษ</th><th>หักเงิน</th><th>รวม</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr>
-        <td>รวม ${e.days.length} วัน</td><td>${fmt(e.totalHours)}</td><td>${fmt(e.totalPay)}</td>
+        <td>รวม ${e.days.length} วัน</td><td></td><td>${fmtHours(e.totalHours)}</td><td>${fmt(e.totalPay)}</td>
         <td>${fmt(e.totalSpecial)}</td><td>${fmt(e.totalDeduction)}</td><td>${fmt(e.net)}</td>
       </tr></tfoot>
     </table>`;
 
+  $('slipNet').innerHTML = `
+    <div class="slip-sum">
+      <div><span>รวมชั่วโมง</span><b>${fmtHours(e.totalHours)}</b></div>
+      <div><span>ค่าจ้างรวม</span><b>${fmt(e.totalPay)} บาท</b></div>
+      <div><span>พิเศษ</span><b>+${fmt(e.totalSpecial)} บาท</b></div>
+      <div><span>หักเงิน</span><b>-${fmt(e.totalDeduction)} บาท</b></div>
+    </div>
+    <div class="slip-net"><span>ยอดรับสุทธิ</span><b>${fmt(e.net)} บาท</b></div>`;
+
   $('detailModal').classList.remove('hidden');
 }
+$('slipBtn').addEventListener('click', () => {
+  document.body.classList.add('printing-slip');
+  const done = () => {
+    document.body.classList.remove('printing-slip');
+    window.removeEventListener('afterprint', done);
+  };
+  window.addEventListener('afterprint', done);
+  window.print();
+});
 function closeDetail() {
   $('detailModal').classList.add('hidden');
 }
@@ -948,8 +1093,12 @@ $('printBtn').addEventListener('click', () => {
 $('csvBtn').addEventListener('click', () => {
   $('exportMenu').classList.add('hidden');
   if (!payrollData.length) return;
-  const header = ['ชื่อพนักงาน', 'ค่าแรง/ชม.', 'ชั่วโมงรวม', 'ค่าจ้าง', 'พิเศษ', 'หักเงิน', 'ยอดสุทธิ'];
-  const lines = payrollData.map(e => [e.name, e.rate, e.totalHours, e.totalPay, e.totalSpecial, e.totalDeduction, e.net]);
+  const header = ['ชื่อพนักงาน', 'วันที่', 'เวลาเข้า-ออก', 'พัก (นาที)', 'ชั่วโมง', 'ค่าจ้าง', 'พิเศษ', 'หักเงิน', 'รวม'];
+  const lines = [];
+  payrollData.forEach(e => {
+    e.days.forEach(d => lines.push([e.name, d.date, d.times || '', d.breakMin || 0, d.hours, d.pay, d.special, d.deduction, d.total]));
+    lines.push([e.name, 'รวม', '', '', e.totalHours, e.totalPay, e.totalSpecial, e.totalDeduction, e.net]);
+  });
   const csv = [header, ...lines]
     .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
     .join('\r\n');
