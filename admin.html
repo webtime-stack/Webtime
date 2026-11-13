@@ -234,6 +234,33 @@
   }
   .busy .loader { margin: 0; max-width: 360px; width: 100%; background: #fff; border-radius: 18px; box-shadow: 0 16px 40px rgba(0,0,0,.12); padding: 26px 24px; }
 
+  /* ---------- หน้าต่างรายละเอียดพนักงาน ---------- */
+  .modal {
+    position: fixed; inset: 0; background: rgba(31,36,48,.45); z-index: 90;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-box {
+    background: #fff; border-radius: 20px; width: 100%; max-width: 760px; max-height: 88vh; overflow: auto;
+    padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.2);
+  }
+  .modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .modal-title { font-weight: 800; font-size: 18px; }
+  .modal-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .modal-x {
+    margin-left: auto; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #fdf3f6;
+    color: var(--brand); font-size: 22px; line-height: 1; cursor: pointer; flex-shrink: 0;
+  }
+  .mini-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .mini { background: #fdf7f9; border-radius: 14px; padding: 12px 14px; }
+  .mini .lbl { font-size: 12px; color: var(--muted); }
+  .mini .val { font-weight: 800; font-size: 16px; margin-top: 4px; }
+  .modal-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .modal-table th, .modal-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  .modal-table th:first-child, .modal-table td:first-child { text-align: left; }
+  .modal-table thead th { background: var(--brand-soft); color: #5b2030; font-weight: 700; }
+  .modal-table tfoot td { font-weight: 800; background: #fdf7f9; }
+  @media (max-width: 560px) { .modal-box { padding: 18px; } .mini-stats { grid-template-columns: 1fr 1fr; } }
+
   /* ---------- Export dropdown ---------- */
   .dropdown-menu.hidden { display: none; }
 
@@ -487,6 +514,22 @@
       </section>
 
     </main>
+  </div>
+</div>
+
+<!-- หน้าต่างรายละเอียดพนักงาน -->
+<div id="detailModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="avatar" id="detailAvatar"></span>
+      <div>
+        <div class="modal-title" id="detailTitle"></div>
+        <div class="modal-sub" id="detailSub"></div>
+      </div>
+      <button class="modal-x" id="detailClose" aria-label="ปิด">×</button>
+    </div>
+    <div class="mini-stats" id="detailStats"></div>
+    <div class="modal-table" id="detailBody"></div>
   </div>
 </div>
 
@@ -776,11 +819,57 @@ function renderPayroll() {
       </div>
     </div>`;
 
-  // คลิกแถวพนักงานเพื่อเปิด/ปิดรายละเอียดรายวัน
+  // คลิกแถวพนักงานเพื่อเปิดหน้าต่างรายละเอียด
   box.querySelectorAll('tr.emp').forEach(tr => tr.addEventListener('click', () => {
-    box.querySelector(`tr[data-detail="${tr.dataset.idx}"]`).classList.toggle('hidden');
+    openDetail(Number(tr.dataset.idx));
   }));
 }
+
+/* ---------- หน้าต่างรายละเอียดพนักงาน ---------- */
+function openDetail(i) {
+  const e = payrollData[i];
+  if (!e) return;
+  $('detailAvatar').textContent = initials(e.name);
+  $('detailAvatar').style.background = colorOf(e.name);
+  $('detailTitle').textContent = e.name;
+  $('detailSub').textContent = `ค่าแรง ${fmt(e.rate)} บาท/ชม. · ${thaiMonth(payrollMonth)}`;
+
+  $('detailStats').innerHTML = [
+    ['ชั่วโมงรวม', `${fmt(e.totalHours)} ชม.`],
+    ['ค่าจ้างรวม', `${fmt(e.totalPay)} บาท`],
+    ['พิเศษ', `${fmt(e.totalSpecial)} บาท`],
+    ['หักเงิน', `${fmt(e.totalDeduction)} บาท`],
+    ['ยอดสุทธิ', `${fmt(e.net)} บาท`]
+  ].map(([l, v]) => `<div class="mini"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
+
+  const rows = e.days.map(d => `
+    <tr>
+      <td>${thaiDate(d.date)}</td>
+      <td>${fmt(d.hours)}</td>
+      <td class="num-g">${fmt(d.pay)}</td>
+      <td class="num-g">${d.special ? '+' + fmt(d.special) : '-'}</td>
+      <td class="num-r">${d.deduction ? '-' + fmt(d.deduction) : '-'}</td>
+      <td><b>${fmt(d.total)}</b></td>
+    </tr>`).join('');
+
+  $('detailBody').innerHTML = `
+    <table>
+      <thead><tr><th>วันที่</th><th>ชั่วโมง</th><th>ค่าจ้าง</th><th>พิเศษ</th><th>หักเงิน</th><th>รวม</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr>
+        <td>รวม ${e.days.length} วัน</td><td>${fmt(e.totalHours)}</td><td>${fmt(e.totalPay)}</td>
+        <td>${fmt(e.totalSpecial)}</td><td>${fmt(e.totalDeduction)}</td><td>${fmt(e.net)}</td>
+      </tr></tfoot>
+    </table>`;
+
+  $('detailModal').classList.remove('hidden');
+}
+function closeDetail() {
+  $('detailModal').classList.add('hidden');
+}
+$('detailClose').addEventListener('click', closeDetail);
+$('detailModal').addEventListener('click', e => { if (e.target.id === 'detailModal') closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
 /* ---------- Export ---------- */
 $('exportBtn').addEventListener('click', e => {
@@ -792,7 +881,6 @@ document.addEventListener('click', () => $('exportMenu').classList.add('hidden')
 $('printBtn').addEventListener('click', () => {
   $('exportMenu').classList.add('hidden');
   if (!payrollData.length) return;
-  document.querySelectorAll('tr.detail').forEach(r => r.classList.remove('hidden'));
   window.print();
 });
 
