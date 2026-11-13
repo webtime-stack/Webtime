@@ -629,7 +629,12 @@ async function withBusy(label, fn) {
 }
 // label = null ถ้าไม่ต้องการแถบทับหน้าจอ (เช่น โหลดข้อมูลที่มีแถบของตัวเองอยู่แล้ว)
 function adminPost(body, label = 'SAVING') {
-  const run = () => apiPost({ ...body, adminName: session.name, adminPw: session.pw });
+  const run = async () => {
+    if (!session) return { ok: false, error: 'กรุณาเข้าสู่ระบบใหม่' };
+    const res = await apiPost({ ...body, adminToken: session.token });
+    if (res.expired) forceLogout('หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่');
+    return res;
+  };
   return label ? withBusy(label, run) : run();
 }
 
@@ -654,7 +659,8 @@ $('loginBtn').addEventListener('click', async () => {
   try {
     const res = await withBusy('LOGGING IN', () => apiPost({ action: 'login', adminName: name, adminPw: pw }));
     if (!res.ok) return showMsg(msg, res.error, false);
-    session = { name, pw };
+    session = { name, token: res.token };
+    sessionStorage.setItem('adminSession', JSON.stringify(session));
     $('whoName').textContent = name;
     $('whoAvatar').textContent = initials(name);
     $('whoAvatar').style.background = colorOf(name);
@@ -674,6 +680,7 @@ $('loginBtn').addEventListener('click', async () => {
 $('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
 
 $('logoutBtn').addEventListener('click', () => {
+  endSession();
   session = null;
   payrollData = [];
   $('loginName').value = '';
@@ -684,6 +691,31 @@ $('logoutBtn').addEventListener('click', () => {
 });
 
 /* ---------- รายชื่อในเมนูเลือก ---------- */
+/* ---------- การจดจำการล็อกอิน (หมดอายุหลัง 1 ชั่วโมงที่ไม่ได้ใช้งาน) ---------- */
+function endSession() {
+  const token = session && session.token;
+  session = null;
+  sessionStorage.removeItem('adminSession');
+  if (token) apiPost({ action: 'logout', adminToken: token }).catch(() => {});
+}
+function forceLogout(text) {
+  endSession();
+  payrollData = [];
+  $('payrollBox').innerHTML = '';
+  $('app').classList.add('hidden');
+  $('loginView').classList.remove('hidden');
+  showMsg($('loginMsg'), text, false);
+}
+function enterApp(name) {
+  $('whoName').textContent = name;
+  $('whoAvatar').textContent = initials(name);
+  $('whoAvatar').style.background = colorOf(name);
+  $('loginView').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('month').value = todayISO().slice(0, 7);
+  $('adjDate').value = todayISO();
+}
+
 async function refreshLists() {
   try {
     const [emp, adm] = await Promise.all([
@@ -880,6 +912,18 @@ $('whoBtn').addEventListener('click', e => { e.stopPropagation(); $('whoMenu').c
 $('whoBtn').addEventListener('keydown', e => { if (e.key === 'Enter') $('whoBtn').click(); });
 document.addEventListener('click', () => $('whoMenu').classList.add('hidden'));
 $('logoutTop').addEventListener('click', () => { $('whoMenu').classList.add('hidden'); $('logoutBtn').click(); });
+
+/* ---------- กู้การล็อกอินเมื่อรีเฟรชหน้า (ถ้ายังไม่หมดเวลา) ---------- */
+(async function restoreSession() {
+  const saved = sessionStorage.getItem('adminSession');
+  if (!saved) return;
+  const s = JSON.parse(saved);
+  const res = await apiPost({ action: 'session', adminToken: s.token }).catch(() => ({ ok: false }));
+  if (!res.ok) { sessionStorage.removeItem('adminSession'); return; }
+  session = s;
+  enterApp(s.name);
+  await Promise.all([refreshLists(), loadSummary()]);
+})();
 
 /* ---------- Export ---------- */
 $('exportBtn').addEventListener('click', e => {
