@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ระบบลงเวลาพนักงาน - ผู้ดูแล</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #d62f4f; --brand-dark: #b5233f; --brand-soft: #fde9ee; --brand-soft2: #fdf3f6;
+    --bg: #faf5f7; --card: #fff; --ink: #1f2430; --muted: #6f7584; --line: #f0e4e9;
+    --green: #15803d; --red: #d62f4f; --blue: #2563eb; --side-w: 250px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; font-family: "Bai Jamjuree", "Sarabun", system-ui, sans-serif; font-size: 15px;
+    color: var(--ink); background: linear-gradient(180deg, #fdf1f5 0%, #faf6f8 40%, #fbf8f9 100%) fixed;
+    -webkit-text-size-adjust: 100%;
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- Login ---------- */
+  .login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: linear-gradient(135deg, #fde3ea 0%, #fbf5f7 60%, #fff 100%);
+  }
+  .login-card {
+    background: #fff; border-radius: 20px; padding: 36px 30px; width: 100%; max-width: 390px;
+    box-shadow: 0 20px 50px rgba(214,47,79,.12); text-align: center;
+  }
+  .login-card .logo-ic {
+    width: 62px; height: 62px; border-radius: 20px; background: linear-gradient(145deg,#ff7a93,#d62f4f); color: #fff; box-shadow: 0 12px 22px rgba(214,47,79,.35), inset 0 1px 0 rgba(255,255,255,.45);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 12px;
+  }
+  .login-card .logo-t { font-size: 20px; font-weight: 800; color: var(--brand); }
+  .login-card .logo-s { color: var(--muted); font-size: 14px; margin: 4px 0 22px; }
+  .field { text-align: left; margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 11px 13px; border: 1px solid #ebdfe4; border-radius: 12px;
+    font: inherit; font-size: 15px; background: #fff; color: var(--ink);
+  }
+  input:focus, select:focus { outline: 3px solid rgba(214,47,79,.15); border-color: var(--brand); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    padding: 10px 16px; border: 0; border-radius: 12px; background: var(--brand); color: #fff;
+    font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 16px rgba(214,47,79,.22);
+  }
+  .btn:hover { background: var(--brand-dark); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn.block { width: 100%; justify-content: center; padding: 13px; font-size: 16px; }
+  .btn.outline { background: #fff; color: var(--ink); border: 1px solid #ebdfe4; box-shadow: none; font-weight: 600; }
+  .btn.outline:hover { background: #fdf6f8; }
+  .btn.small { padding: 9px 16px; font-size: 14px; }
+  .btn.danger { background: var(--red); }
+
+  .msg { margin-top: 12px; padding: 10px 13px; border-radius: 12px; font-size: 14px; display: none; text-align: left; }
+  .msg.ok { display: block; background: #e8f7ee; color: var(--green); }
+  .msg.bad { display: block; background: #fdecef; color: var(--red); }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: var(--side-w); background: #fff; border-right: 1px solid var(--line); padding: 26px 16px;
+    display: flex; flex-direction: column; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .side-logo { display: flex; align-items: center; gap: 12px; padding: 0 8px 26px; }
+  .side-logo .logo-ic {
+    width: 44px; height: 44px; border-radius: 14px; border: 0; background: linear-gradient(145deg,#ff7a93,#d62f4f); color: #fff; box-shadow: 0 8px 16px rgba(214,47,79,.35), inset 0 1px 0 rgba(255,255,255,.45);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .side-logo .logo-t { color: var(--brand); font-weight: 800; font-size: 15px; line-height: 1.25; }
+  .side-logo .logo-s { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; margin: 3px 0;
+    border: 0; background: none; border-radius: 14px; font: inherit; font-size: 15px; color: var(--ink);
+    cursor: pointer; text-align: left;
+  }
+  .nav-item:hover { background: #fdf3f6; }
+  .nav-item.active { background: var(--brand); color: #fff; font-weight: 700; box-shadow: 0 8px 18px rgba(214,47,79,.25); }
+  .nav-item .ic {
+    width: 34px; height: 34px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg,#fff1f4,#fdd6e0); color: #b5233f; flex-shrink: 0;
+    box-shadow: 0 4px 8px rgba(214,47,79,.14), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  .nav-item.active .ic {
+    background: linear-gradient(145deg,#ff7a93,#e0304f); color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 14px; }
+
+  .content-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
+    height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 28px; position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,.7); backdrop-filter: blur(6px);
+  }
+  .topbar .spacer { flex: 1; }
+  .menu-btn {
+    width: 40px; height: 40px; border: 0; background: #fff; color: var(--brand); border-radius: 12px;
+    font-size: 20px; cursor: pointer; display: none; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .who { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; background: #fff; padding: 6px 14px 6px 6px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .main { padding: 8px 28px 48px; }
+
+  /* ---------- Page head ---------- */
+  .page-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin: 6px 0 22px; }
+  .title-block { border-left: 6px solid var(--brand); padding-left: 16px; }
+  .title-block h1 { margin: 0; font-size: 26px; font-weight: 800; }
+  .title-block .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pill-input { width: auto; border-radius: 12px; padding: 10px 14px; font-weight: 600; background: #fff; }
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.12); min-width: 230px; padding: 6px; z-index: 30;
+  }
+  .dropdown-menu button {
+    display: block; width: 100%; padding: 11px 13px; border: 0; background: none; text-align: left;
+    font: inherit; border-radius: 10px; cursor: pointer;
+  }
+  .dropdown-menu button:hover { background: #fdf3f6; }
+
+  /* ---------- Notice ---------- */
+  .notice {
+    display: flex; align-items: center; gap: 12px; background: #e8f7ee; border: 1px solid #bfe6cd; color: var(--green);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; font-weight: 600;
+  }
+  .notice .ok-dot {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+  }
+  .notice .x { margin-left: auto; background: none; border: 0; font-size: 18px; color: var(--green); cursor: pointer; }
+
+  /* ---------- Stats ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+  .stat-card {
+    background: #fff; border-radius: 18px; padding: 20px 22px; display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .stat-ic {
+    width: 56px; height: 56px; border-radius: 18px; background: linear-gradient(145deg,#ffd6df,#fb9fb3); color: #b5233f; box-shadow: 0 10px 18px rgba(214,47,79,.28), inset 0 1px 0 rgba(255,255,255,.7);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+  }
+  .stat-card .lbl { font-size: 13px; color: var(--muted); }
+  .stat-card .val { font-size: 22px; font-weight: 800; margin-top: 4px; }
+
+  /* ---------- Cards / tables ---------- */
+  .card { background: #fff; border-radius: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04); margin-bottom: 20px; }
+  .card-pad { padding: 22px; }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: 20px 22px 4px; font-size: 17px; font-weight: 800; }
+  .card-head .bar-ic {
+    display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px;
+    background: linear-gradient(145deg,#ffd6df,#fb9fb3); color: #b5233f;
+    box-shadow: 0 6px 12px rgba(214,47,79,.25), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  .ic svg, .stat-ic svg, .logo-ic svg, .bar-ic svg, .ok-dot svg { filter: drop-shadow(0 1px 1px rgba(0,0,0,.18)); }
+  .card h2 { margin: 0 0 16px; font-size: 17px; font-weight: 800; }
+  .card h3 { margin: 18px 0 10px; font-size: 14px; color: var(--muted); font-weight: 700; }
+  .table-wrap { overflow-x: auto; padding: 14px 18px 18px; }
+  table.payroll { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 780px; }
+  table.payroll th, table.payroll td { padding: 14px 14px; text-align: right; white-space: nowrap; }
+  table.payroll thead th {
+    background: var(--brand-soft); color: #5b2030; font-size: 14px; font-weight: 700;
+  }
+  table.payroll thead th:first-child { border-radius: 12px 0 0 12px; }
+  table.payroll thead th:last-child { border-radius: 0 12px 12px 0; }
+  table.payroll tbody td { border-bottom: 1px solid var(--line); font-size: 15px; }
+  table.payroll tbody tr.emp { cursor: pointer; }
+  table.payroll tbody tr.emp:hover td { background: #fdf7f9; }
+  table.payroll th:first-child, table.payroll td:first-child { text-align: left; }
+  table.payroll tfoot td {
+    background: var(--brand-soft); font-weight: 800; padding: 16px 14px; font-size: 15px;
+  }
+  table.payroll tfoot td:first-child { border-radius: 12px 0 0 12px; }
+  table.payroll tfoot td:last-child { border-radius: 0 12px 12px 0; }
+  .emp-cell { display: flex; align-items: center; gap: 12px; }
+  .emp-name { font-weight: 700; }
+  .emp-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .num-g { color: var(--green); font-weight: 600; }
+  .num-r { color: var(--red); font-weight: 600; }
+  .num-b { color: var(--blue); font-weight: 600; }
+  .net { font-weight: 800; }
+  .unit { font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+  tr.detail td { background: #fdf9fb; padding: 0; }
+  .detail-inner { padding: 14px 18px 18px 70px; }
+  .detail-inner table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .detail-inner th, .detail-inner td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+  .detail-inner th:first-child, .detail-inner td:first-child { text-align: left; }
+  .detail-inner th { color: var(--muted); font-weight: 700; font-size: 13px; }
+  .empty { text-align: center; color: var(--muted); padding: 50px 20px; background: #fff; border-radius: 18px; }
+
+  /* ---------- Forms ---------- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid2 .full { grid-column: 1 / -1; }
+  .form-actions { margin-top: 18px; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
+  .divider { border: 0; border-top: 1px dashed #ecdfe4; margin: 22px 0; }
+
+  /* ---------- Loader ---------- */
+  .loader { background: transparent; text-align: center; margin: 40px auto; max-width: 420px; padding: 20px; }
+  .loader-label { color: var(--muted); font-size: 13px; letter-spacing: 3px; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; }
+  .loader-track {
+    position: relative; height: 22px; border-radius: 999px; background: #f4eaee;
+    border: 2px solid #ecdfe4; overflow: hidden;
+  }
+  .loader-bar {
+    position: absolute; left: 4px; top: 4px; bottom: 4px; width: 0; border-radius: 999px;
+    background: linear-gradient(90deg, #e0168b 0%, #ff3b5c 60%, #ff5a3c 100%);
+    box-shadow: 0 0 14px rgba(255,60,92,.45);
+    animation: loaderFill 1.6s ease-in-out infinite;
+  }
+  .loader-bar::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    animation: loaderShine 1.2s linear infinite;
+  }
+  @keyframes loaderFill { 0% { width: 0; } 70% { width: 72%; } 100% { width: 72%; } }
+  @keyframes loaderShine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+  .busy {
+    position: fixed; inset: 0; background: rgba(255,255,255,.75); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .busy .loader { margin: 0; max-width: 360px; width: 100%; background: #fff; border-radius: 18px; box-shadow: 0 16px 40px rgba(0,0,0,.12); padding: 26px 24px; }
+
+  /* ---------- Export dropdown ---------- */
+  .dropdown-menu.hidden { display: none; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1100px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .menu-btn { display: inline-block; }
+    .sidebar {
+      position: fixed; left: calc(-1 * var(--side-w) - 20px); top: 0; z-index: 40; transition: left .2s;
+      box-shadow: 8px 0 24px rgba(0,0,0,.08);
+    }
+    .sidebar.open { left: 0; }
+    .topbar { padding: 0 16px; }
+    .main { padding: 8px 16px 40px; }
+    .title-block h1 { font-size: 21px; }
+  }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .pill-input { width: 100%; }
+    .toolbar { width: 100%; }
+    .toolbar .dropdown { flex: 1; }
+    .toolbar .btn { flex: 1; justify-content: center; }
+  }
+
+  @media print {
+    .sidebar, .topbar, .toolbar, .dropdown, .no-print, .notice .x { display: none !important; }
+    .content-wrap { display: block; }
+    .main { padding: 0; }
+    body { background: #fff; }
+    .card { box-shadow: none; }
+    .table-wrap { overflow: visible; }
+    tr.detail { display: table-row !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<div id="loginView" class="login-wrap">
+  <div class="login-card">
+    <div class="logo-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <div class="logo-t">ระบบลงเวลาพนักงาน</div>
+    <div class="logo-s">เข้าสู่ระบบสำหรับผู้ดูแล</div>
+    <div class="field">
+      <label for="loginName">ชื่อผู้ดูแล</label>
+      <input id="loginName" type="text" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="loginPw">รหัสผ่าน</label>
+      <input id="loginPw" type="password" autocomplete="current-password">
+    </div>
+    <button id="loginBtn" class="btn block">เข้าสู่ระบบ</button>
+    <a href="index.html" style="display:block;text-align:center;margin-top:14px;color:#6f7584;font-size:14px;text-decoration:none">← กลับหน้าแรก</a>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- ===== App หลังล็อกอิน ===== -->
+<div id="app" class="app hidden">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="side-logo">
+      <div class="logo-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div>
+        <div class="logo-t">ระบบลงเวลาพนักงาน</div>
+        <div class="logo-s">ผู้ดูแลระบบ</div>
+      </div>
+    </div>
+
+    <button class="nav-item active" data-page="payroll"><span class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>หน้าหลัก</button>
+    <button class="nav-item" data-page="adjust"><span class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1"/></svg></span>พิเศษ / หักเงิน</button>
+    <button class="nav-item" data-page="employee"><span class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.3-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2 .4 3.4 2 4 4.5"/></svg></span>จัดการพนักงาน</button>
+    <button class="nav-item" data-page="admin"><span class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M14 9l2 2"/></svg></span>ผู้ดูแลระบบ</button>
+
+    <div class="side-foot">
+      <button class="nav-item" id="logoutBtn"><span class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></span>ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="content-wrap">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="เมนู"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <span class="spacer"></span>
+      <div class="who">
+        <span class="avatar" id="whoAvatar"></span>
+        <span id="whoName"></span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- ===== หน้าหลัก: รายงานสรุป ===== -->
+      <section data-section="payroll">
+        <div class="page-head">
+          <div class="title-block">
+            <h1>รายงานสรุปการทำงาน</h1>
+            <div class="sub">สรุปข้อมูลการลงเวลา ประจำเดือน</div>
+          </div>
+          <div class="toolbar no-print">
+            <input id="month" type="month" class="pill-input">
+            <button id="loadBtn" class="btn outline"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>รีเฟรช</button>
+            <div class="dropdown">
+              <button class="btn" id="exportBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+              <div class="dropdown-menu hidden" id="exportMenu">
+                <button id="printBtn">พิมพ์สรุปรายการ</button>
+                <button id="csvBtn">ดาวน์โหลดไฟล์ CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="payrollBox"></div>
+      </section>
+
+      <!-- ===== พิเศษ / หักเงิน ===== -->
+      <section data-section="adjust" class="hidden">
+        <div class="page-head">
+          <div class="title-block">
+            <h1>รายการพิเศษ / หักเงิน</h1>
+            <div class="sub">บันทึกรายการที่ต้องนำไปคิดในรอบเงินเดือน</div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="grid2">
+            <div class="field" style="margin:0">
+              <label for="adjName">พนักงาน</label>
+              <select id="adjName"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label for="adjType">ประเภท</label>
+              <select id="adjType"><option>พิเศษ</option><option>หักเงิน</option></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label for="adjDate">วันที่</label>
+              <input id="adjDate" type="date">
+            </div>
+            <div class="field" style="margin:0">
+              <label for="adjAmount">จำนวนเงิน (บาท)</label>
+              <input id="adjAmount" type="number" inputmode="decimal" min="0">
+            </div>
+            <div class="field full" style="margin:0">
+              <label for="adjNote">หมายเหตุ</label>
+              <input id="adjNote" type="text">
+            </div>
+          </div>
+          <div class="form-actions"><button id="adjBtn" class="btn">บันทึกรายการ</button></div>
+          <div id="adjMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- ===== จัดการพนักงาน ===== -->
+      <section data-section="employee" class="hidden">
+        <div class="page-head">
+          <div class="title-block">
+            <h1>จัดการพนักงาน</h1>
+            <div class="sub">เพิ่มพนักงาน รีเซ็ต PIN และลบพนักงาน</div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h2>เพิ่มพนักงานใหม่</h2>
+          <div class="grid2">
+            <div class="field" style="margin:0">
+              <label for="empName">ชื่อพนักงาน</label>
+              <input id="empName" type="text">
+            </div>
+            <div class="field" style="margin:0">
+              <label for="empPin">PIN (4-6 หลัก)</label>
+              <input id="empPin" type="password" inputmode="numeric" maxlength="6">
+            </div>
+            <div class="field full" style="margin:0">
+              <label for="empRate">ค่าแรงต่อชั่วโมง (บาท)</label>
+              <input id="empRate" type="number" inputmode="decimal" min="0">
+            </div>
+          </div>
+          <div class="form-actions"><button id="addEmpBtn" class="btn">เพิ่มพนักงาน</button></div>
+          <div id="empMsg" class="msg"></div>
+        </div>
+
+        <div class="card card-pad">
+          <h2>รีเซ็ต PIN พนักงาน</h2>
+          <div class="grid2">
+            <div class="field" style="margin:0">
+              <label for="resetPinName">พนักงาน</label>
+              <select id="resetPinName"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label for="resetPinValue">PIN ใหม่ (4-6 หลัก)</label>
+              <input id="resetPinValue" type="password" inputmode="numeric" maxlength="6">
+            </div>
+          </div>
+          <div class="form-actions"><button id="resetPinBtn" class="btn">รีเซ็ต PIN</button></div>
+          <div id="pinMsg" class="msg"></div>
+        </div>
+
+        <div class="card card-pad">
+          <h2>ลบพนักงาน</h2>
+          <div class="field" style="margin:0">
+            <label for="delEmpName">พนักงาน</label>
+            <select id="delEmpName"></select>
+          </div>
+          <div class="hint">การลบจะซ่อนพนักงานออกจากรายชื่อและหน้าลงเวลา ประวัติการลงเวลาและค่าแรงเดิมยังเก็บไว้ในรายงาน</div>
+          <div class="form-actions"><button id="delEmpBtn" class="btn danger">ลบพนักงาน</button></div>
+          <div id="delEmpMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- ===== ผู้ดูแลระบบ ===== -->
+      <section data-section="admin" class="hidden">
+        <div class="page-head">
+          <div class="title-block">
+            <h1>ผู้ดูแลระบบ</h1>
+            <div class="sub">เพิ่มผู้ดูแลและรีเซ็ตรหัสผ่าน</div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h2>เพิ่มผู้ดูแลใหม่</h2>
+          <div class="grid2">
+            <div class="field" style="margin:0">
+              <label for="newAdminName">ชื่อผู้ดูแล</label>
+              <input id="newAdminName" type="text">
+            </div>
+            <div class="field" style="margin:0">
+              <label for="newAdminPw">รหัสผ่าน (อย่างน้อย 4 ตัว)</label>
+              <input id="newAdminPw" type="password">
+            </div>
+          </div>
+          <div class="form-actions"><button id="addAdminBtn" class="btn">เพิ่มผู้ดูแล</button></div>
+          <div id="addAdminMsg" class="msg"></div>
+        </div>
+
+        <div class="card card-pad">
+          <h2>รีเซ็ตรหัสผ่านผู้ดูแล</h2>
+          <div class="grid2">
+            <div class="field" style="margin:0">
+              <label for="resetAdminName">ผู้ดูแล</label>
+              <select id="resetAdminName"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label for="resetAdminPwValue">รหัสผ่านใหม่</label>
+              <input id="resetAdminPwValue" type="password">
+            </div>
+          </div>
+          <div class="form-actions"><button id="resetAdminBtn" class="btn">รีเซ็ตรหัสผ่าน</button></div>
+          <div id="resetAdminMsg" class="msg"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- แถบโหลดทับหน้าจอตอนบันทึก -->
+<div id="busy" class="busy hidden">
+  <div class="loader">
+    <div class="loader-label" id="busyLabel">SAVING</div>
+    <div class="loader-track"><div class="loader-bar"></div></div>
+  </div>
+</div>
+
+<script>
+/* ใส่ URL ของ Web App จาก Apps Script ที่นี่ (ต้องเหมือนกับในไฟล์ index.html) */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxZymhGOVJPyHOE9DUTrqEgjt6n1Dn4CzGAsN-OgtA_mrd2EFFIR_oHSe8ijKVFSzKe/exec';
+
+const $ = id => document.getElementById(id);
+let session = null;      // { name, pw } เก็บในหน่วยความจำของหน้าเท่านั้น
+let payrollData = [];
+let payrollMonth = '';
+
+/* ---------- ช่วยเหลือ ---------- */
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function showMsg(el, text, ok) {
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'bad');
+}
+function fmt(n) {
+  return Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function thaiNow() {
+  const d = new Date(Date.now() + 7 * 3600 * 1000);
+  const months = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear() + 543} เวลา ${hh}:${mm} น.`;
+}
+function todayISO() {
+  return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function thaiDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d}/${m}/${y + 543}`;
+}
+function thaiMonth(ym) {
+  const months = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const [y, m] = ym.split('-').map(Number);
+  return `${months[m - 1]} ${y + 543}`;
+}
+function colorOf(name) {
+  const colors = ['#d62f4f','#2563eb','#15803d','#d98a1f','#7a4fd1','#0f8b8d'];
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return colors[h % colors.length];
+}
+function initials(name) {
+  return String(name).trim().slice(0, 1).toUpperCase();
+}
+function fillSelect(el, names) {
+  el.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+}
+async function apiGet(params) {
+  const qs = new URLSearchParams(params).toString();
+  const r = await fetch(API_URL + '?' + qs);
+  return r.json();
+}
+async function apiPost(body) {
+  // ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight กับ Apps Script
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+/* ---------- แถบโหลดทับหน้าจอ ---------- */
+let busyCount = 0;
+function busy(on, label = 'LOADING') {
+  if (on) {
+    busyCount++;
+    $('busyLabel').textContent = label;
+    $('busy').classList.remove('hidden');
+  } else {
+    busyCount = Math.max(0, busyCount - 1);
+    if (!busyCount) $('busy').classList.add('hidden');
+  }
+}
+async function withBusy(label, fn) {
+  busy(true, label);
+  try { return await fn(); } finally { busy(false); }
+}
+// label = null ถ้าไม่ต้องการแถบทับหน้าจอ (เช่น โหลดข้อมูลที่มีแถบของตัวเองอยู่แล้ว)
+function adminPost(body, label = 'SAVING') {
+  const run = () => apiPost({ ...body, adminName: session.name, adminPw: session.pw });
+  return label ? withBusy(label, run) : run();
+}
+
+/* ---------- สลับหน้า ---------- */
+function showSection(name) {
+  document.querySelectorAll('[data-section]').forEach(s => s.classList.toggle('hidden', s.dataset.section !== name));
+  document.querySelectorAll('.nav-item[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === name));
+  $('sidebar').classList.remove('open');
+}
+document.querySelectorAll('.nav-item[data-page]').forEach(b =>
+  b.addEventListener('click', () => showSection(b.dataset.page)));
+$('menuBtn').addEventListener('click', () => $('sidebar').classList.toggle('open'));
+
+/* ---------- ล็อกอิน / ออกจากระบบ ---------- */
+$('loginBtn').addEventListener('click', async () => {
+  const name = $('loginName').value.trim();
+  const pw = $('loginPw').value;
+  const msg = $('loginMsg');
+  if (!name || !pw) return showMsg(msg, 'กรุณากรอกชื่อและรหัสผ่าน', false);
+
+  $('loginBtn').disabled = true;
+  try {
+    const res = await withBusy('LOGGING IN', () => apiPost({ action: 'login', adminName: name, adminPw: pw }));
+    if (!res.ok) return showMsg(msg, res.error, false);
+    session = { name, pw };
+    $('whoName').textContent = name;
+    $('whoAvatar').textContent = initials(name);
+    $('whoAvatar').style.background = colorOf(name);
+    $('loginPw').value = '';
+    $('loginView').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    $('month').value = todayISO().slice(0, 7);
+    $('adjDate').value = todayISO();
+    // โหลดรายชื่อและรายงานพร้อมกัน เพื่อให้หน้าขึ้นเร็วขึ้น
+    await Promise.all([refreshLists(), loadSummary()]);
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  } finally {
+    $('loginBtn').disabled = false;
+  }
+});
+$('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+$('logoutBtn').addEventListener('click', () => {
+  session = null;
+  payrollData = [];
+  $('loginName').value = '';
+  $('loginPw').value = '';
+  $('payrollBox').innerHTML = '';
+  $('app').classList.add('hidden');
+  $('loginView').classList.remove('hidden');
+});
+
+/* ---------- รายชื่อในเมนูเลือก ---------- */
+async function refreshLists() {
+  try {
+    const [emp, adm] = await Promise.all([
+      apiGet({ action: 'employees' }),
+      adminPost({ action: 'listAdmins' }, null)
+    ]);
+    fillSelect($('adjName'), emp.names);
+    fillSelect($('resetPinName'), emp.names);
+    fillSelect($('delEmpName'), emp.names);
+    if (adm.ok) fillSelect($('resetAdminName'), adm.names);
+  } catch (e) { /* ข้อผิดพลาดจะแสดงตอนทำรายการ */ }
+}
+
+/* ---------- รายงานสรุป ---------- */
+$('loadBtn').addEventListener('click', loadSummary);
+$('month').addEventListener('change', loadSummary);
+
+async function loadSummary() {
+  const box = $('payrollBox');
+  const month = $('month').value;
+  if (!month || !session) return;
+  payrollMonth = month;
+  box.innerHTML = `
+    <div class="loader"><div class="loader-label">LOADING</div>
+      <div class="loader-track"><div class="loader-bar"></div></div></div>`;
+  try {
+    const res = await adminPost({ action: 'summary', month }, null);
+    if (!res.ok) { box.innerHTML = `<div class="empty">${esc(res.error)}</div>`; return; }
+    payrollData = res.employees;
+    renderPayroll();
+  } catch (e) {
+    box.innerHTML = '<div class="empty">โหลดข้อมูลไม่สำเร็จ</div>';
+  }
+}
+
+function renderPayroll() {
+  const box = $('payrollBox');
+  if (!payrollData.length) {
+    box.innerHTML = `<div class="empty">ไม่มีข้อมูลของเดือน ${thaiMonth(payrollMonth)}</div>`;
+    return;
+  }
+
+  const t = k => payrollData.reduce((a, e) => a + (Number(e[k]) || 0), 0);
+  const totalNet = t('net'), totalHours = t('totalHours'), totalPay = t('totalPay'),
+        totalSpecial = t('totalSpecial'), totalDeduction = t('totalDeduction');
+
+  const rows = payrollData.map((e, i) => `
+    <tr class="emp" data-idx="${i}">
+      <td>
+        <div class="emp-cell">
+          <span class="avatar" style="background:${colorOf(e.name)}">${esc(initials(e.name))}</span>
+          <div>
+            <div class="emp-name">${esc(e.name)}</div>
+            <div class="emp-sub">ค่าแรง ${fmt(e.rate)} บาท/ชม. · ${e.days.length} วัน</div>
+          </div>
+        </div>
+      </td>
+      <td class="num-b">${fmt(e.totalHours)}<span class="unit">ชม.</span></td>
+      <td class="num-g">${fmt(e.totalPay)}</td>
+      <td class="num-g">${fmt(e.totalSpecial)}</td>
+      <td class="num-r">${fmt(e.totalDeduction)}</td>
+      <td class="net">${fmt(e.net)}</td>
+    </tr>
+    <tr class="detail hidden" data-detail="${i}">
+      <td colspan="6">
+        <div class="detail-inner">
+          <table>
+            <thead><tr><th>วันที่</th><th>ชั่วโมง</th><th>ค่าจ้าง</th><th>พิเศษ</th><th>หักเงิน</th><th>รวม</th></tr></thead>
+            <tbody>
+              ${e.days.map(d => `
+                <tr>
+                  <td>${thaiDate(d.date)}</td>
+                  <td>${fmt(d.hours)}</td>
+                  <td class="num-g">${fmt(d.pay)}</td>
+                  <td class="num-g">${d.special ? '+' + fmt(d.special) : '-'}</td>
+                  <td class="num-r">${d.deduction ? '-' + fmt(d.deduction) : '-'}</td>
+                  <td><b>${fmt(d.total)}</b></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  box.innerHTML = `
+    <div class="notice">
+      <span class="ok-dot"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+      <span>ข้อมูลล่าสุด อัปเดตเมื่อ: ${thaiNow()}</span>
+      <button class="x" onclick="this.parentElement.remove()" aria-label="ปิด">×</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.3-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2 .4 3.4 2 4 4.5"/></svg></div>
+        <div><div class="lbl">พนักงานทั้งหมด</div><div class="val">${payrollData.length} คน</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><div class="lbl">ชั่วโมงรวมทั้งหมด</div><div class="val">${fmt(totalHours)} ชม.</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1"/></svg></div>
+        <div><div class="lbl">ค่าจ้างรวม</div><div class="val">${fmt(totalPay)} บาท</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+        <div><div class="lbl">ยอดสุทธิรวม</div><div class="val">${fmt(totalNet)} บาท</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="bar-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>สรุปตามพนักงาน · ${thaiMonth(payrollMonth)}</div>
+      <div class="table-wrap">
+        <table class="payroll">
+          <thead>
+            <tr>
+              <th>พนักงาน</th>
+              <th>ชั่วโมงรวม</th>
+              <th>ค่าจ้าง</th>
+              <th>พิเศษ</th>
+              <th>หักเงิน</th>
+              <th>ยอดสุทธิ</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <td>รวม ${payrollData.length} คน</td>
+              <td>${fmt(totalHours)}<span class="unit">ชม.</span></td>
+              <td>${fmt(totalPay)}</td>
+              <td>${fmt(totalSpecial)}</td>
+              <td>${fmt(totalDeduction)}</td>
+              <td>${fmt(totalNet)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+
+  // คลิกแถวพนักงานเพื่อเปิด/ปิดรายละเอียดรายวัน
+  box.querySelectorAll('tr.emp').forEach(tr => tr.addEventListener('click', () => {
+    box.querySelector(`tr[data-detail="${tr.dataset.idx}"]`).classList.toggle('hidden');
+  }));
+}
+
+/* ---------- Export ---------- */
+$('exportBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  $('exportMenu').classList.toggle('hidden');
+});
+document.addEventListener('click', () => $('exportMenu').classList.add('hidden'));
+
+$('printBtn').addEventListener('click', () => {
+  $('exportMenu').classList.add('hidden');
+  if (!payrollData.length) return;
+  document.querySelectorAll('tr.detail').forEach(r => r.classList.remove('hidden'));
+  window.print();
+});
+
+$('csvBtn').addEventListener('click', () => {
+  $('exportMenu').classList.add('hidden');
+  if (!payrollData.length) return;
+  const header = ['ชื่อพนักงาน', 'ค่าแรง/ชม.', 'ชั่วโมงรวม', 'ค่าจ้าง', 'พิเศษ', 'หักเงิน', 'ยอดสุทธิ'];
+  const lines = payrollData.map(e => [e.name, e.rate, e.totalHours, e.totalPay, e.totalSpecial, e.totalDeduction, e.net]);
+  const csv = [header, ...lines]
+    .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `payroll-${payrollMonth}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ---------- พิเศษ / หักเงิน ---------- */
+$('adjBtn').addEventListener('click', async () => {
+  const msg = $('adjMsg');
+  const amount = $('adjAmount').value;
+  if (!amount || Number(amount) <= 0) return showMsg(msg, 'กรุณากรอกจำนวนเงิน', false);
+  try {
+    const res = await adminPost({
+      action: 'adjust',
+      name: $('adjName').value,
+      type: $('adjType').value,
+      date: $('adjDate').value,
+      amount,
+      note: $('adjNote').value
+    });
+    if (res.ok) {
+      showMsg(msg, 'บันทึกรายการแล้ว', true);
+      $('adjAmount').value = '';
+      $('adjNote').value = '';
+      loadSummary();
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+/* ---------- จัดการพนักงาน ---------- */
+$('addEmpBtn').addEventListener('click', async () => {
+  const msg = $('empMsg');
+  try {
+    const res = await adminPost({
+      action: 'addEmployee',
+      newName: $('empName').value,
+      newPin: $('empPin').value,
+      rate: $('empRate').value
+    });
+    if (res.ok) {
+      showMsg(msg, '' + res.message, true);
+      $('empName').value = '';
+      $('empPin').value = '';
+      $('empRate').value = '';
+      refreshLists();
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+$('resetPinBtn').addEventListener('click', async () => {
+  const msg = $('pinMsg');
+  try {
+    const res = await adminPost({
+      action: 'resetPin',
+      targetName: $('resetPinName').value,
+      newPin: $('resetPinValue').value
+    });
+    if (res.ok) {
+      showMsg(msg, '' + res.message, true);
+      $('resetPinValue').value = '';
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+$('delEmpBtn').addEventListener('click', async () => {
+  const msg = $('delEmpMsg');
+  const name = $('delEmpName').value;
+  if (!name) return showMsg(msg, 'กรุณาเลือกพนักงาน', false);
+  if (!confirm(`ยืนยันการลบพนักงาน "${name}" ?\nประวัติการลงเวลาและค่าแรงเดิมจะยังเก็บไว้`)) return;
+  try {
+    const res = await adminPost({ action: 'deleteEmployee', targetName: name });
+    if (res.ok) {
+      showMsg(msg, '' + res.message, true);
+      refreshLists();
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+/* ---------- ผู้ดูแลระบบ ---------- */
+$('addAdminBtn').addEventListener('click', async () => {
+  const msg = $('addAdminMsg');
+  try {
+    const res = await adminPost({
+      action: 'addAdmin',
+      newName: $('newAdminName').value,
+      newPw: $('newAdminPw').value
+    });
+    if (res.ok) {
+      showMsg(msg, '' + res.message, true);
+      $('newAdminName').value = '';
+      $('newAdminPw').value = '';
+      refreshLists();
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+$('resetAdminBtn').addEventListener('click', async () => {
+  const msg = $('resetAdminMsg');
+  try {
+    const res = await adminPost({
+      action: 'resetAdminPw',
+      targetName: $('resetAdminName').value,
+      newPw: $('resetAdminPwValue').value
+    });
+    if (res.ok) {
+      showMsg(msg, '' + res.message, true);
+      $('resetAdminPwValue').value = '';
+    } else {
+      showMsg(msg, res.error, false);
+    }
+  } catch (e) {
+    showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+  }
+});
+
+</script>
+</body>
+</html>
