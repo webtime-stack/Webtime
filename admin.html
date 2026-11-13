@@ -347,10 +347,14 @@
     <header class="topbar">
       <button class="menu-btn" id="menuBtn" aria-label="เมนู"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <span class="spacer"></span>
-      <div class="who">
+      <div class="dropdown" id="whoWrap"><div class="who" id="whoBtn" role="button" tabindex="0" style="cursor:pointer">
         <span class="avatar" id="whoAvatar"></span>
         <span id="whoName"></span>
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="dropdown-menu hidden" id="whoMenu" style="top:calc(100% + 8px)">
+        <button id="logoutTop" style="color:#b5233f">ออกจากระบบ</button>
+      </div>
       </div>
     </header>
 
@@ -870,6 +874,12 @@ function closeDetail() {
 $('detailClose').addEventListener('click', closeDetail);
 $('detailModal').addEventListener('click', e => { if (e.target.id === 'detailModal') closeDetail(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+/* ---------- เมนูผู้ใช้ด้านบน ---------- */
+$('whoBtn').addEventListener('click', e => { e.stopPropagation(); $('whoMenu').classList.toggle('hidden'); });
+$('whoBtn').addEventListener('keydown', e => { if (e.key === 'Enter') $('whoBtn').click(); });
+document.addEventListener('click', () => $('whoMenu').classList.add('hidden'));
+$('logoutTop').addEventListener('click', () => { $('whoMenu').classList.add('hidden'); $('logoutBtn').click(); });
 
 /* ---------- Export ---------- */
 $('exportBtn').addEventListener('click', e => {
