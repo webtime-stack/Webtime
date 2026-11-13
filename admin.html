@@ -632,7 +632,10 @@ function adminPost(body, label = 'SAVING') {
   const run = async () => {
     if (!session) return { ok: false, error: 'กรุณาเข้าสู่ระบบใหม่' };
     const res = await apiPost({ ...body, adminToken: session.token });
-    if (res.expired) forceLogout('หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่');
+    if (res.expired || res.error === 'SESSION_EXPIRED') {
+      forceLogout('หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่');
+      return { ok: false, error: 'หมดเวลาการใช้งาน' };
+    }
     return res;
   };
   return label ? withBusy(label, run) : run();
@@ -743,7 +746,11 @@ async function loadSummary() {
       <div class="loader-track"><div class="loader-bar"></div></div></div>`;
   try {
     const res = await adminPost({ action: 'summary', month }, null);
-    if (!res.ok) { box.innerHTML = `<div class="empty">${esc(res.error)}</div>`; return; }
+    if (!res.ok) {
+      if (res.error === 'หมดเวลาการใช้งาน' || res.expired) return; // กลับไปหน้าล็อกอินแล้ว
+      box.innerHTML = `<div class="empty">${esc(res.error)}</div>`;
+      return;
+    }
     payrollData = res.employees;
     renderPayroll();
   } catch (e) {
