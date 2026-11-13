@@ -13,87 +13,103 @@
   :root {
     --brand: #d62f4f; --brand-dark: #b5233f; --brand-soft: #fde9ee;
     --bg: #faf5f7; --card: #fff; --ink: #1f2430; --muted: #6f7584; --line: #f0e4e9;
-    --green: #15803d; --red: #d62f4f;
+    --green: #15803d; --red: #d62f4f; --blue: #2563eb; --amber: #b45309;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; font-family: "Bai Jamjuree", "Sarabun", system-ui, sans-serif; font-size: 15px;
     color: var(--ink); -webkit-text-size-adjust: 100%; min-height: 100vh;
-    background: linear-gradient(180deg, #fdf1f5 0%, #faf6f8 40%, #fbf8f9 100%) fixed;
+    background: linear-gradient(180deg, #fdf1f5 0%, #faf6f8 45%, #fbf8f9 100%) fixed;
   }
   .hidden { display: none !important; }
 
-  /* ---------- แถบบน ---------- */
   .topbar {
     height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 20px;
     background: rgba(255,255,255,.7); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10;
   }
+  .back { text-decoration: none; color: var(--muted); font-size: 14px; margin-right: 6px; }
   .brand-ic {
     width: 40px; height: 40px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center;
     background: linear-gradient(145deg,#ff7a93,#d62f4f); color: #fff;
     box-shadow: 0 8px 16px rgba(214,47,79,.35), inset 0 1px 0 rgba(255,255,255,.45);
   }
-  .brand-t { color: var(--brand); font-weight: 800; font-size: 17px; }
+  .brand-t { color: var(--brand); font-weight: 800; font-size: 16px; }
   .brand-s { color: var(--muted); font-size: 12px; }
 
-  main { max-width: 560px; margin: 0 auto; padding: 18px 16px 48px; }
-
-  .title-block { border-left: 6px solid var(--brand); padding-left: 14px; margin: 8px 0 22px; }
-  .title-block h1 { margin: 0; font-size: 24px; font-weight: 800; }
-  .title-block .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
-
-  /* ---------- การ์ด ---------- */
-  .card {
-    background: var(--card); border-radius: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04);
-    padding: 22px; position: relative; overflow: hidden;
-  }
-  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-  .card-head .ic {
-    width: 44px; height: 44px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
-    background: linear-gradient(145deg,#ffd6df,#fb9fb3); color: #b5233f;
-    box-shadow: 0 8px 16px rgba(214,47,79,.25), inset 0 1px 0 rgba(255,255,255,.7);
-  }
-  .card-head h2 { margin: 0; font-size: 17px; font-weight: 800; }
-  .card-head .hint { color: var(--muted); font-size: 13px; margin-top: 2px; }
-
-  .ic svg, .brand-ic svg, .success-ic svg, .loader svg { filter: drop-shadow(0 1px 1px rgba(0,0,0,.18)); }
+  main { max-width: 520px; margin: 0 auto; padding: 18px 16px 48px; }
+  .card { background: var(--card); border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.04); padding: 22px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 16px; font-size: 18px; font-weight: 800; }
 
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
   input, select {
-    width: 100%; padding: 11px 13px; border: 1px solid #ebdfe4; border-radius: 12px;
+    width: 100%; padding: 12px 14px; border: 1px solid #ebdfe4; border-radius: 12px;
     font: inherit; font-size: 16px; background: #fff; color: var(--ink);
   }
   input:focus, select:focus { outline: 3px solid rgba(214,47,79,.15); border-color: var(--brand); }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .btn {
-    width: 100%; margin-top: 8px; padding: 13px; border: 0; border-radius: 12px; cursor: pointer;
+    width: 100%; padding: 13px; border: 0; border-radius: 12px; cursor: pointer;
     background: linear-gradient(145deg,#ff7a93,#d62f4f); color: #fff; font: inherit; font-size: 16px; font-weight: 700;
     box-shadow: 0 10px 20px rgba(214,47,79,.28), inset 0 1px 0 rgba(255,255,255,.35);
   }
-  .btn:hover { filter: brightness(.97); }
   .btn:disabled { opacity: .6; cursor: default; }
-  .btn.outline {
-    background: #fff; color: var(--ink); border: 1px solid #ebdfe4; box-shadow: none; font-weight: 600;
-  }
+  .btn.ghost { background: #fff; color: var(--muted); border: 1px solid #ebdfe4; box-shadow: none; font-weight: 600; font-size: 14px; padding: 10px; }
 
-  .msg { margin-top: 14px; padding: 10px 13px; border-radius: 12px; font-size: 14px; display: none; }
+  .msg { margin-top: 12px; padding: 10px 13px; border-radius: 12px; font-size: 14px; display: none; }
   .msg.ok { display: block; background: #e8f7ee; color: var(--green); }
   .msg.bad { display: block; background: #fdecef; color: var(--red); }
 
-  /* ---------- แถบโหลด ---------- */
-  .loader { background: transparent; text-align: center; margin: 40px auto; max-width: 420px; padding: 20px; }
-  .loader-label { color: var(--muted); font-size: 13px; letter-spacing: 3px; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; }
-  .loader-track {
-    position: relative; height: 22px; border-radius: 999px; background: #f4eaee;
-    border: 2px solid #ecdfe4; overflow: hidden;
+  /* การ์ดสถานะวันนี้ */
+  .today { background: linear-gradient(145deg,#fff6f8,#fde9ee); border-radius: 18px; padding: 18px; text-align: center; }
+  .today .name { font-weight: 800; font-size: 18px; }
+  .today .date { font-size: 26px; font-weight: 800; margin: 6px 0; }
+  .pill {
+    display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; background: #fff; color: var(--muted);
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
   }
+  .pill.work { color: var(--green); }
+  .pill.rest { color: var(--amber); }
+  .pill.done { color: var(--brand); }
+  .stale { margin-top: 12px; background: #fff6e5; color: var(--amber); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+
+  /* ปุ่มลงเวลา */
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .act {
+    border: 1px solid #ebdfe4; background: #fff; border-radius: 18px; padding: 18px 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 10px; font: inherit; color: var(--ink); font-weight: 700;
+    box-shadow: 0 6px 14px rgba(0,0,0,.04); transition: transform .15s ease;
+  }
+  .act:active { transform: scale(.97); }
+  .act:disabled { opacity: .4; cursor: default; transform: none; }
+  .act .ic {
+    width: 52px; height: 52px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 14px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  .act.in .ic { background: linear-gradient(145deg,#c9f3d6,#6fd394); color: #0f6b33; }
+  .act.brk .ic { background: linear-gradient(145deg,#fde3b0,#f7b84b); color: #8a4b00; }
+  .act.back .ic { background: linear-gradient(145deg,#cfe0ff,#7aa6f5); color: #1b3f94; }
+  .act.out .ic { background: linear-gradient(145deg,#ffd6df,#fb9fb3); color: #b5233f; }
+  .act .sub { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  /* ประวัติวันนี้ */
+  .hist { margin-top: 18px; }
+  .hist h3 { margin: 0 0 8px; font-size: 15px; color: var(--muted); }
+  .hist-row { display: flex; justify-content: space-between; padding: 11px 4px; border-bottom: 1px solid var(--line); }
+  .hist-row:last-child { border-bottom: 0; }
+  .hist-row .t { font-weight: 800; }
+  .hist-empty { color: var(--muted); font-size: 14px; padding: 10px 4px; }
+
+  .switch { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; }
+
+  /* แถบโหลด */
+  .loader { background: transparent; text-align: center; margin: 30px auto; max-width: 420px; padding: 20px; }
+  .loader-label { color: var(--muted); font-size: 13px; letter-spacing: 3px; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; }
+  .loader-track { position: relative; height: 22px; border-radius: 999px; background: #f4eaee; border: 2px solid #ecdfe4; overflow: hidden; }
   .loader-bar {
     position: absolute; left: 4px; top: 4px; bottom: 4px; width: 0; border-radius: 999px;
     background: linear-gradient(90deg, #e0168b 0%, #ff3b5c 60%, #ff5a3c 100%);
-    box-shadow: 0 0 14px rgba(255,60,92,.45);
-    animation: loaderFill 1.6s ease-in-out infinite;
+    box-shadow: 0 0 14px rgba(255,60,92,.45); animation: loaderFill 1.6s ease-in-out infinite;
   }
   .loader-bar::after {
     content: ""; position: absolute; inset: 0; border-radius: inherit;
@@ -102,136 +118,93 @@
   }
   @keyframes loaderFill { 0% { width: 0; } 70% { width: 72%; } 100% { width: 72%; } }
   @keyframes loaderShine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-  .overlay {
-    position: absolute; inset: 0; background: rgba(255,255,255,.85); border-radius: 18px;
-    display: flex; align-items: center; justify-content: center; z-index: 5;
-  }
-  .overlay .loader { margin: 0; width: 90%; max-width: 360px; padding: 26px 24px; background: #fff; border-radius: 18px; box-shadow: 0 16px 40px rgba(0,0,0,.12); }
-
-  /* ---------- หน้าสำเร็จ ---------- */
-  .success { text-align: center; padding: 34px 20px; }
-  .success-ic {
-    width: 76px; height: 76px; border-radius: 24px; margin: 0 auto 16px; display: inline-flex; align-items: center; justify-content: center;
-    background: linear-gradient(145deg,#c9f3d6,#6fd394); color: #0f6b33;
-    box-shadow: 0 12px 22px rgba(21,128,61,.25), inset 0 1px 0 rgba(255,255,255,.7);
-  }
-  .success h3 { margin: 0 0 6px; font-size: 19px; font-weight: 800; }
-  .success p { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
-
-  @media (max-width: 520px) { .row { grid-template-columns: 1fr; gap: 0; } }
+  .busy { position: fixed; inset: 0; background: rgba(255,255,255,.75); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .busy .loader { margin: 0; width: 100%; max-width: 340px; background: #fff; border-radius: 18px; box-shadow: 0 16px 40px rgba(0,0,0,.12); padding: 26px 24px; }
 </style>
 </head>
 <body>
 
 <header class="topbar">
-  <a href="index.html" style="text-decoration:none;color:#6f7584;font-size:14px;margin-right:6px">← หน้าแรก</a>
+  <a class="back" href="index.html">← หน้าแรก</a>
   <span class="brand-ic">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
   </span>
   <div>
     <div class="brand-t">ระบบลงเวลาพนักงาน</div>
-    <div class="brand-s">บันทึกเวลาเข้า-ออกกะ</div>
+    <div class="brand-s">กดลงเวลาตามเวลาจริง</div>
   </div>
 </header>
 
 <main>
-  <!-- แถบโหลดตอนเปิดหน้า -->
-  <div id="initLoader">
-    <div class="loader">
-      <div class="loader-label">LOADING</div>
-      <div class="loader-track"><div class="loader-bar"></div></div>
+  <!-- ขั้นที่ 1: เลือกชื่อและยืนยัน PIN -->
+  <section id="loginCard" class="card">
+    <h2>เข้าสู่ระบบลงเวลา</h2>
+    <div class="field">
+      <label for="name">ชื่อพนักงาน</label>
+      <select id="name"><option value="">กำลังโหลด...</option></select>
     </div>
-  </div>
+    <div class="field">
+      <label for="pin">รหัส PIN</label>
+      <input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+    </div>
+    <button id="verifyBtn" class="btn">เข้าสู่ระบบ</button>
+    <div id="loginMsg" class="msg"></div>
+  </section>
 
-  <!-- ฟอร์มลงเวลา -->
-  <div id="formCard" class="hidden">
-    <div class="title-block">
-      <h1>ลงเวลาวันนี้</h1>
-      <div class="sub">เลือกชื่อ กรอก PIN แล้วบันทึกเวลาเข้า-ออก</div>
+  <!-- ขั้นที่ 2: กดลงเวลา -->
+  <section id="punchCard" class="card hidden">
+    <div class="today">
+      <div class="name" id="punchName"></div>
+      <div class="date" id="todayText"></div>
+      <span class="pill" id="statePill"></span>
+      <div id="staleBox" class="stale hidden">รอบกะก่อนหน้ายังไม่ได้ปิด กรุณาแจ้งผู้ดูแล</div>
     </div>
 
-    <div class="card">
-      <div id="saveOverlay" class="overlay hidden">
-        <div class="loader">
-          <div class="loader-label">SAVING</div>
-          <div class="loader-track"><div class="loader-bar"></div></div>
-        </div>
-      </div>
-
-      <div class="card-head">
-        <span class="ic">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.3-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2 .4 3.4 2 4 4.5"/></svg>
-        </span>
-        <div>
-          <h2>ข้อมูลพนักงาน</h2>
-          <div class="hint">ยืนยันตัวตนด้วยรหัส PIN ของคุณ</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="name">ชื่อพนักงาน</label>
-        <select id="name"></select>
-      </div>
-
-      <div class="field">
-        <label for="pin">รหัส PIN</label>
-        <input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="date">วันที่</label>
-          <input id="date" type="date">
-        </div>
-        <div class="field">
-          <label for="shift">กะ</label>
-          <select id="shift">
-            <option>กะเช้า</option>
-            <option>กะบ่าย</option>
-            <option>กะดึก</option>
-            <option>กะพัก</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="start">เวลาเข้า</label>
-          <input id="start" type="time">
-        </div>
-        <div class="field">
-          <label for="end">เวลาออก</label>
-          <input id="end" type="time">
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="breakMin">เวลาพัก (นาที)</label>
-        <input id="breakMin" type="number" inputmode="numeric" min="0" value="0">
-      </div>
-
-      <button id="submitClock" class="btn">บันทึกเวลา</button>
-      <div id="staffMsg" class="msg"></div>
+    <div class="actions">
+      <button class="act in" data-ev="เข้างาน">
+        <span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M4 12h11M11 8l4 4-4 4"/></svg></span>
+        เข้างาน
+      </button>
+      <button class="act brk" data-ev="เริ่มพัก">
+        <span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2"/><path d="M8 3v3M12 3v3"/></svg></span>
+        เริ่มพัก
+      </button>
+      <button class="act back" data-ev="กลับจากพัก">
+        <span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg></span>
+        กลับจากพัก
+      </button>
+      <button class="act out" data-ev="ออกงาน">
+        <span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M15 16l4-4-4-4M19 12H9"/></svg></span>
+        ออกงาน
+      </button>
     </div>
-  </div>
+    <div id="actionMsg" class="msg"></div>
 
-  <!-- หลังบันทึกสำเร็จ -->
-  <div id="successCard" class="card success hidden">
-    <div class="success-ic">
-      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+    <div class="hist">
+      <h3>ประวัติการลงเวลาวันนี้</h3>
+      <div id="histBox"></div>
     </div>
-    <h3>บันทึกเวลาเรียบร้อยแล้ว</h3>
-    <p id="successText"></p>
-    <button id="againBtn" class="btn outline" style="margin-top:0">ลงเวลาอีกครั้ง</button>
-  </div>
+
+    <button class="switch" id="switchBtn">เปลี่ยนพนักงาน</button>
+  </section>
 </main>
+
+<div id="busy" class="busy hidden">
+  <div class="loader">
+    <div class="loader-label" id="busyLabel">LOADING</div>
+    <div class="loader-track"><div class="loader-bar"></div></div>
+  </div>
+</div>
 
 <script>
 /* ใส่ URL ของ Web App จาก Apps Script ที่นี่ (ต้องเหมือนกับในไฟล์ admin.html) */
 const API_URL = 'https://script.google.com/macros/s/AKfycbxZymhGOVJPyHOE9DUTrqEgjt6n1Dn4CzGAsN-OgtA_mrd2EFFIR_oHSe8ijKVFSzKe/exec';
 
 const $ = id => document.getElementById(id);
+let who = null; // { name, pin } เก็บในหน่วยความจำของหน้านี้เท่านั้น
+
+const EV_TEXT = { 'เข้างาน': 'เข้างาน', 'เริ่มพัก': 'เริ่มพัก', 'กลับจากพัก': 'กลับจากพัก', 'ออกงาน': 'ออกงาน' };
+const STATE_CLASS = { 'กำลังทำงาน': 'work', 'กำลังพัก': 'rest', 'ออกงานแล้ว': 'done', 'ยังไม่เข้างาน': '', 'รอบกะค้าง': 'rest' };
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -240,12 +213,10 @@ function showMsg(el, text, ok) {
   el.textContent = text;
   el.className = 'msg ' + (ok ? 'ok' : 'bad');
 }
-function todayISO() {
-  return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
-}
-function thaiDate(iso) {
-  const [y, m, d] = iso.split('-').map(Number);
-  return `${d}/${m}/${y + 543}`;
+function thaiToday() {
+  const d = new Date(Date.now() + 7 * 3600 * 1000);
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear() + 543}`;
 }
 async function apiGet(params) {
   const qs = new URLSearchParams(params).toString();
@@ -261,8 +232,17 @@ async function apiPost(body) {
   });
   return r.json();
 }
+let busyCount = 0;
+function busy(on, label = 'LOADING') {
+  if (on) { busyCount++; $('busyLabel').textContent = label; $('busy').classList.remove('hidden'); }
+  else { busyCount = Math.max(0, busyCount - 1); if (!busyCount) $('busy').classList.add('hidden'); }
+}
+async function withBusy(label, fn) {
+  busy(true, label);
+  try { return await fn(); } finally { busy(false); }
+}
 
-/* ---------- โหลดรายชื่อตอนเปิดหน้า ---------- */
+/* ---------- โหลดรายชื่อ ---------- */
 async function loadNames() {
   try {
     const res = await apiGet({ action: 'employees' });
@@ -270,61 +250,82 @@ async function loadNames() {
       res.names.map(n => `<option>${esc(n)}</option>`).join('');
   } catch (e) {
     $('name').innerHTML = '<option value="">โหลดรายชื่อไม่สำเร็จ</option>';
-  } finally {
-    $('initLoader').classList.add('hidden');
-    $('formCard').classList.remove('hidden');
   }
 }
 
-$('date').value = todayISO();
-
-/* ---------- บันทึกเวลา ---------- */
-$('submitClock').addEventListener('click', async () => {
-  const btn = $('submitClock');
-  const msg = $('staffMsg');
-  const data = {
-    action: 'clock',
-    name: $('name').value,
-    pin: $('pin').value.trim(),
-    date: $('date').value,
-    shift: $('shift').value,
-    start: $('start').value,
-    end: $('end').value,
-    breakMin: $('breakMin').value
-  };
+/* ---------- เข้าสู่ระบบลงเวลา ---------- */
+$('verifyBtn').addEventListener('click', async () => {
+  const name = $('name').value;
+  const pin = $('pin').value.trim();
+  const msg = $('loginMsg');
   msg.className = 'msg';
-  if (!data.name) return showMsg(msg, 'กรุณาเลือกชื่อ', false);
-  if (!data.pin) return showMsg(msg, 'กรุณากรอกรหัส PIN', false);
-  if (!data.date || !data.start || !data.end) return showMsg(msg, 'กรุณากรอกวันที่และเวลาให้ครบ', false);
-
-  btn.disabled = true;
-  $('saveOverlay').classList.remove('hidden');
+  if (!name) return showMsg(msg, 'กรุณาเลือกชื่อ', false);
+  if (!pin) return showMsg(msg, 'กรุณากรอกรหัส PIN', false);
   try {
-    const res = await apiPost(data);
-    if (res.ok) {
-      $('successText').textContent = `${data.name} · ${thaiDate(data.date)} · ${data.shift}`;
-      $('formCard').classList.add('hidden');
-      $('successCard').classList.remove('hidden');
-    } else {
-      showMsg(msg, res.error, false);
-    }
+    const res = await withBusy('LOADING', () => apiPost({ action: 'status', name, pin }));
+    if (!res.ok) return showMsg(msg, res.error, false);
+    who = { name, pin };
+    $('pin').value = '';
+    $('loginCard').classList.add('hidden');
+    $('punchCard').classList.remove('hidden');
+    render(res);
   } catch (e) {
     showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
-  } finally {
-    btn.disabled = false;
-    $('saveOverlay').classList.add('hidden');
   }
 });
+$('pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('verifyBtn').click(); });
 
-/* ---------- ลงเวลาอีกครั้ง ---------- */
-$('againBtn').addEventListener('click', () => {
-  $('pin').value = '';
-  $('start').value = '';
-  $('end').value = '';
-  $('breakMin').value = '0';
-  $('staffMsg').className = 'msg';
-  $('successCard').classList.add('hidden');
-  $('formCard').classList.remove('hidden');
+/* ---------- แสดงสถานะและปุ่มที่กดได้ ---------- */
+function render(st) {
+  $('punchName').textContent = st.name;
+  $('todayText').textContent = thaiToday();
+  const pill = $('statePill');
+  pill.textContent = st.state;
+  pill.className = 'pill ' + (STATE_CLASS[st.state] || '');
+  $('staleBox').classList.toggle('hidden', !st.stale);
+
+  document.querySelectorAll('.act').forEach(btn => {
+    btn.disabled = !st.allowed.includes(btn.dataset.ev);
+  });
+
+  const hist = st.todayEvents || [];
+  $('histBox').innerHTML = hist.length
+    ? hist.map(h => `<div class="hist-row"><span>${esc(EV_TEXT[h.ev] || h.ev)}</span><span class="t">${esc(h.time)} น.</span></div>`).join('')
+    : '<div class="hist-empty">ยังไม่มีการลงเวลาวันนี้</div>';
+}
+
+/* ---------- กดลงเวลา ---------- */
+document.querySelectorAll('.act').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!who) return;
+    const ev = btn.dataset.ev;
+    const msg = $('actionMsg');
+    msg.className = 'msg';
+    try {
+      const res = await withBusy('SAVING', () => apiPost({ action: 'punch', name: who.name, pin: who.pin, event: ev }));
+      if (!res.ok) {
+        showMsg(msg, res.error, false);
+        // อัปเดตสถานะให้ตรงกับระบบเสมอ
+        const st = await apiPost({ action: 'status', name: who.name, pin: who.pin });
+        if (st.ok) render(st);
+        return;
+      }
+      showMsg(msg, res.message, true);
+      const st = await apiPost({ action: 'status', name: who.name, pin: who.pin });
+      if (st.ok) render(st);
+    } catch (e) {
+      showMsg(msg, 'เชื่อมต่อไม่ได้ กรุณาลองใหม่', false);
+    }
+  });
+});
+
+/* ---------- เปลี่ยนพนักงาน ---------- */
+$('switchBtn').addEventListener('click', () => {
+  who = null;
+  $('actionMsg').className = 'msg';
+  $('loginMsg').className = 'msg';
+  $('punchCard').classList.add('hidden');
+  $('loginCard').classList.remove('hidden');
 });
 
 loadNames();
